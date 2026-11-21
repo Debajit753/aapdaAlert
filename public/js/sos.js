@@ -148,7 +148,7 @@ function heliAlert(n) {
   if (n.level === "signal_now") {
     vibrate([600, 200, 600, 200, 600, 200, 1200]);
     document.querySelectorAll(".overlay.heli").forEach((o) => o.close?.());
-    strobe(true, { withWhistle: true, title: t("heli_now_t"), lines: [t("heli_now_b", { km: n.distanceKm }), ...steps] });
+    strobe(true, { title: t("heli_now_t"), lines: [t("heli_now_b", { km: n.distanceKm }), ...steps] });
   } else {
     vibrate([400, 200, 400]);
     whistle(true); setTimeout(() => whistle(false), 2500);
@@ -159,7 +159,7 @@ function heliAlert(n) {
         h("p", { class: "big" }, t("heli_approach_b", { km: n.distanceKm })),
         h("ol", { class: "steps" }, steps.map((x) => h("li", {}, x))),
         h("div", { class: "row" },
-          h("button", { class: "btn primary", onclick: () => { close(); strobe(true, { withWhistle: true, title: t("heli_now_t"), lines: steps }); } }, label("flashlight_on", t("strobe_start"))),
+          h("button", { class: "btn primary", onclick: () => { close(); strobe(true, { title: t("heli_now_t"), lines: steps }); } }, label("flashlight_on", t("strobe_start"))),
           h("button", { class: "btn", onclick: () => close() }, t("close")))),
       { className: "heli" },
     );

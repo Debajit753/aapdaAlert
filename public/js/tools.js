@@ -39,6 +39,48 @@ export function whistle(on) {
   } catch { audio = null; }
 }
 
+// ---------- siren ----------
+let sirenAudio = null;
+/** A loud rising and falling emergency siren, made in the browser. */
+export function siren(on) {
+  if (!on) {
+    if (sirenAudio) { sirenAudio.stop(); sirenAudio = null; }
+    return;
+  }
+  if (sirenAudio) return;
+  try {
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    const ctx = new Ctx();
+    const gain = ctx.createGain();
+    gain.gain.value = 0.55;
+    gain.connect(ctx.destination);
+    // Two slightly detuned tones sound fuller and carry further than one
+    const oscs = [0, 6].map((detune) => {
+      const o = ctx.createOscillator();
+      o.type = "sawtooth";
+      o.detune.value = detune * 100;
+      o.connect(gain);
+      return o;
+    });
+    // Wail: sweep 650 Hz up to 1500 Hz and back, about once every 2.4 seconds
+    const LOW = 650, HIGH = 1500, HALF = 1.2;
+    let t0 = ctx.currentTime;
+    const schedule = () => {
+      for (const o of oscs) {
+        o.frequency.setValueAtTime(LOW, t0);
+        o.frequency.linearRampToValueAtTime(HIGH, t0 + HALF);
+        o.frequency.linearRampToValueAtTime(LOW, t0 + HALF * 2);
+      }
+      t0 += HALF * 2;
+    };
+    schedule(); schedule();
+    const timer = setInterval(schedule, HALF * 2000);
+    oscs.forEach((o) => o.start());
+    ctx.resume?.();
+    sirenAudio = { stop() { clearInterval(timer); try { oscs.forEach((o) => o.stop()); ctx.close(); } catch { /* ignore */ } } };
+  } catch { sirenAudio = null; }
+}
+
 // ---------- torch (camera flash) where the browser allows it ----------
 let torchTrack = null;
 async function torchOn() {
@@ -58,7 +100,8 @@ const U = 220; // one Morse unit in ms
 const SOS = [1, 1, 1, 1, 1, 3, 3, 1, 3, 1, 3, 3, 1, 1, 1, 1, 1, 7]; // on/off durations in units, alternating, starting with "on"
 
 let strobeClose = null;
-export function strobe(on, { withWhistle = false, title = "", lines = [] } = {}) {
+/** Full-screen SOS flashing with a siren (sound: "siren" by default, or false for silent). */
+export function strobe(on, { sound = "siren", title = "", lines = [] } = {}) {
   if (!on) { strobeClose?.(); return; }
   if (strobeClose) return;
   const panel = h("div", { class: "strobe" },
@@ -76,10 +119,10 @@ export function strobe(on, { withWhistle = false, title = "", lines = [] } = {})
   };
   strobeClose = overlay(panel, {
     className: "strobe-layer",
-    onClose: () => { alive = false; clearTimeout(timer); torchOff(); keepAwake(false); if (withWhistle) whistle(false); strobeClose = null; },
+    onClose: () => { alive = false; clearTimeout(timer); torchOff(); keepAwake(false); siren(false); strobeClose = null; },
   });
   keepAwake(true);
-  if (withWhistle) whistle(true);
+  if (sound === "siren") siren(true);
   torchOn().then(() => { if (alive) torchSet(true); });
   tick();
 }

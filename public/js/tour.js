@@ -65,8 +65,8 @@ export function renderTour(view, { goto, setLanguage, resetDemo }) {
       text: "A demo helicopter flies toward your SOS. You get \"Get ready\" at 10 km, then \"Signal now!\" at 3 km with the strobe and whistle. Takes about 40 seconds.",
       action: h("div", { class: "stack" }, btn("helicopter", "Fly the demo helicopter", fly, "blue"), heliState) }),
     card({ ic: "flashlight_on", tint: "red", title: "6. Strobe and whistle",
-      text: "The screen flashes SOS in Morse code and the phone plays a rescue whistle, so a helicopter or boat crew can find you.",
-      action: btn("flashlight_on", "Start the strobe", () => strobe(true, { withWhistle: true })) }),
+      text: "The screen flashes SOS in Morse code and the phone plays a loud siren, so a helicopter or boat crew can find you. The whistle is on the same screen.",
+      action: btn("flashlight_on", "Start the strobe", () => strobe(true)) }),
 
     h("h3", {}, "For rescuers"),
     card({ ic: "health_and_safety", tint: "green", title: "7. Control room dashboard",

@@ -1,4 +1,4 @@
-// apadaAlert citizen app: screens and navigation.
+// aapdaAlert citizen app: screens and navigation.
 import { LANGS, t, setLang, getLang, pick, speechLang } from "./i18n.js";
 import { h, $, toast, timeAgo, fill } from "./ui.js";
 import { icon, label } from "./icons.js";
@@ -190,7 +190,7 @@ function updateTop(id) {
   const showBack = Boolean(SUB_SCREENS[id]);
   fill($("#topleft"), showBack
     ? h("a", { class: "back", href: "#home", "aria-label": t("back"), onclick: (e) => { e.preventDefault(); goBack(); } }, icon("arrow_back"))
-    : h("a", { class: "mark", href: "#home", "aria-label": "apadaAlert" }, h("img", { src: "/icons/icon.svg", alt: "" })));
+    : h("a", { class: "mark", href: "#home", "aria-label": "aapdaAlert" }, h("img", { src: "/icons/icon.svg", alt: "" })));
   const avatar = $("#avatar");
   avatar.hidden = !settings.introDone;
   const name = getProfile().name.trim();
@@ -220,9 +220,11 @@ function route() {
   document.querySelectorAll("#nav a").forEach((a) => a.classList.toggle("active", a.dataset.id === tab));
   const screens = { home: renderHome, chat: renderChatView, map: renderMap, guides: renderGuides, guide: (v) => renderGuide(v, arg), more: renderMore, help: renderHelp, camps: renderCamps, tools: renderTools, profile: renderProfile, tour: renderTourView };
   (screens[id] || renderHome)(view);
-  window.scrollTo(0, 0);
+  scrollTop();
 }
 const goto = (id) => { location.hash = id; };
+/** Back to the top of the screen: the page on phones, the app area inside the frame on wide screens. */
+function scrollTop() { window.scrollTo(0, 0); const v = $("#view"); if (v) v.scrollTop = 0; }
 
 // The screens visited in order, so Back returns to the previous one (or Home).
 const trail = [];
@@ -245,7 +247,7 @@ function renderIntro(view) {
   const steps = [introLang, introCard(1), introCard(2), introCard(3), introDetails, introConsent];
   fill(view, h("div", { class: "intro" }, steps[introStep]()),
     h("button", { class: "sos-float", "aria-label": t("sos"), onclick: () => { finishIntro(); startDanger({ trigger: "sos", onLeftover: askLeftovers }); } }, "SOS"));
-  window.scrollTo(0, 0);
+  scrollTop();
 }
 const nextIntro = () => { introStep++; route(); };
 const prevIntro = () => { introStep = Math.max(0, introStep - 1); route(); };
@@ -261,7 +263,7 @@ function introLang() {
   return h("div", { class: "intro-card" },
     h("div", { class: "intro-body" },
       h("img", { class: "hero-logo", src: "/icons/icon.svg", alt: "" }),
-      h("p", { class: "wordmark" }, "apada", h("b", {}, "Alert")),
+      h("p", { class: "wordmark" }, "aapda", h("b", {}, "Alert")),
       h("p", { class: "lead" }, t("tagline")),
       h("h3", { style: { textAlign: "left" } }, t("intro_lang")),
       langList(nextIntro),

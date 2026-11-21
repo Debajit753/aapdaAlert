@@ -1,9 +1,9 @@
-# apadaAlert: Product Requirements Document
+# aapdaAlert: Product Requirements Document
 
 **Event:** PromptWars x Code1 Innovators (Hack2skill)
 **Problem statement:** PS05, Northeast Connect: Community Emergency Assistant
 **Domain:** North East Development and Disaster Management
-**Product name:** apadaAlert
+**Product name:** aapdaAlert
 **Version:** 1.3 (hackathon demo build)
 **Date:** 21 Nov 2026
 **Submission deadline:** 22 Nov 2026, 5:00 PM IST
@@ -14,7 +14,7 @@
 
 ## 1. One-line summary
 
-apadaAlert ("apada" means disaster) is an installable web app that helps people in North East India get through floods, landslides and earthquakes. An AI companion talks with them in their own language and, the moment they are in danger, switches to simple tap-only questions. Their SOS goes to a rescue control room straight away, and each answer adds detail to it. The app warns them when a rescue helicopter is close so they can signal it. Later phases add full offline mode and a phone-to-phone Bluetooth network that works with no internet or mobile signal at all.
+aapdaAlert ("aapda" means disaster) is an installable web app that helps people in North East India get through floods, landslides and earthquakes. An AI companion talks with them in their own language and, the moment they are in danger, switches to simple tap-only questions. Their SOS goes to a rescue control room straight away, and each answer adds detail to it. The app warns them when a rescue helicopter is close so they can signal it. Later phases add full offline mode and a phone-to-phone Bluetooth network that works with no internet or mobile signal at all.
 
 ## 2. Problem
 
@@ -594,4 +594,4 @@ Before the demo: test voice on the demo phone. If Assamese voice doesn't work, s
 5. **Camp data:** use demo camps, or does the team have a real list for one district?
 6. **Demo area:** which district or city should the demo centre on? Guwahati is the default.
 
-**Decided:** product name apadaAlert; hosting on GitHub and Vercel; Firebase Firestore on the free plan; Gemini key from Google AI Studio; no login in the demo; chats saved on the server; danger questions saved on the phone.
+**Decided:** product name aapdaAlert; hosting on GitHub and Vercel; Firebase Firestore on the free plan; Gemini key from Google AI Studio; no login in the demo; chats saved on the server; danger questions saved on the phone.

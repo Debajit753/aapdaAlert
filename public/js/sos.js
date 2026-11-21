@@ -95,7 +95,7 @@ export function smsLink(s = activeSos()) {
   const loc = s?.lat != null ? s : lastLocation() || {};
   const a = s?.answers || {};
   const where = loc.lat != null ? `${loc.lat},${loc.lon} https://maps.google.com/?q=${loc.lat},${loc.lon}` : "location unknown";
-  const body = `SOS apadaAlert. ${p.name || ""} needs rescue. ${s?.hazard && s.hazard !== "unknown" ? s.hazard + ". " : ""}` +
+  const body = `SOS aapdaAlert. ${p.name || ""} needs rescue. ${s?.hazard && s.hazard !== "unknown" ? s.hazard + ". " : ""}` +
     `${p.people ? p.people + " people. " : ""}${a.injured === "bad" ? "Badly injured. " : ""}${a.canMove === "stuck" ? "Stuck. " : ""}Location: ${where}`;
   const to = (p.contacts || []).map((c) => c.phone).filter(Boolean).join(",");
   return `sms:${to}?body=${encodeURIComponent(body)}`;

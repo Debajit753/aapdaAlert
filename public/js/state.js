@@ -45,6 +45,8 @@ export function addChat(msg) {
 }
 
 // ---------- outbox in IndexedDB (PRD F3) ----------
+// Internal storage name from before the rename to aapdaAlert. Kept on purpose: changing it would strand
+// any SOS still waiting in a phone's outbox. Nobody sees this name.
 const DB_NAME = "apadaAlert";
 const STORE = "outbox";
 let dbPromise = null;

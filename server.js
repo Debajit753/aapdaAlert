@@ -34,7 +34,7 @@ http.createServer(async (req, res) => {
     res.end(data);
   });
 }).listen(PORT, () => {
-  console.log(`apadaAlert running at http://localhost:${PORT}`);
+  console.log(`aapdaAlert running at http://localhost:${PORT}`);
   console.log(`  Citizen app: http://localhost:${PORT}/`);
   console.log(`  Dashboard:   http://localhost:${PORT}/dashboard`);
   console.log(`  Crew page:   http://localhost:${PORT}/crew`);

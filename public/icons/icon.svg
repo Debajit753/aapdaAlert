@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <!-- apadaAlert mark: a location pin sending out a signal. "Your location reaches rescuers." -->
+  <!-- aapdaAlert mark: a location pin sending out a signal. "Your location reaches rescuers." -->
   <rect width="512" height="512" rx="112" fill="#e0281e"/>
   <g fill="none" stroke="#fff" stroke-width="26" stroke-linecap="round">
     <path d="M362.5 157.4A130 130 0 0 1 362.5 306.6"/>

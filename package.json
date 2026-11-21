@@ -1,8 +1,8 @@
 {
-  "name": "apadaalert",
+  "name": "aapdaalert",
   "version": "1.0.0",
   "private": true,
-  "description": "apadaAlert: AI disaster companion and rescue SOS platform for North East India (PromptWars PS05)",
+  "description": "aapdaAlert: AI disaster companion and rescue SOS platform for North East India (PromptWars PS05)",
   "type": "module",
   "scripts": {
     "dev": "node server.js",

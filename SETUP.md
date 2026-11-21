@@ -1,6 +1,6 @@
-# apadaAlert: setup notes for the team
+# aapdaAlert: setup notes for the team
 
-How to run, connect and deploy apadaAlert. For what the app is and does, see [README.md](README.md).
+How to run, connect and deploy aapdaAlert. For what the app is and does, see [README.md](README.md).
 
 ## Run it on your computer
 

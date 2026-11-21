@@ -1,5 +1,5 @@
 rules_version = '2';
-// apadaAlert: browsers never talk to Firestore directly.
+// aapdaAlert: browsers never talk to Firestore directly.
 // All reads and writes go through the Vercel API using the Admin SDK, which ignores these rules.
 service cloud.firestore {
   match /databases/{database}/documents {

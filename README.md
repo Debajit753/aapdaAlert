@@ -1,11 +1,11 @@
 <p align="center">
-  <img src="public/icons/icon-192.png" width="88" alt="apadaAlert logo">
+  <img src="public/icons/icon-192.png" width="88" alt="aapdaAlert logo">
 </p>
 
-<h1 align="center">apadaAlert</h1>
+<h1 align="center">aapdaAlert</h1>
 
 <p align="center">
-  <b>Other apps tell you a disaster is coming. apadaAlert gets you rescued once it's here,<br>in your own language, even when the network fails.</b>
+  <b>Other apps tell you a disaster is coming. aapdaAlert gets you rescued once it's here,<br>in your own language, even when the network fails.</b>
 </p>
 
 <p align="center">
@@ -24,7 +24,7 @@
 
 ## What it is
 
-**apadaAlert** ("apada" means disaster) is an installable web app for people in North East India facing floods, landslides, earthquakes and storms, and a control room for the teams who rescue them.
+**aapdaAlert** ("aapda" means disaster) is an installable web app for people in North East India facing floods, landslides, earthquakes and storms, and a control room for the teams who rescue them.
 
 It does three jobs:
 
@@ -42,7 +42,7 @@ It does three jobs:
 
 ## What makes it different
 
-| Most disaster apps today | apadaAlert |
+| Most disaster apps today | aapdaAlert |
 |---|---|
 | Send alerts one way, to the public | Two-way: the person sends an SOS, the control room answers, the crew finds them |
 | Need you to type or fill forms | **Send first, ask after:** the SOS leaves on the first tap; a few tap-only questions add detail |
@@ -207,7 +207,7 @@ Open the app and tap **"Judge? Skip to the feature tour"** on the first screen (
 ---
 
 <p align="center">
-  apadaAlert is a hackathon demo. It is not a replacement for emergency services. <b>In an emergency, call 112.</b>
+  aapdaAlert is a hackathon demo. It is not a replacement for emergency services. <b>In an emergency, call 112.</b>
   <br><br>
   Icons: Material Symbols (Apache 2.0) · Map: © OpenStreetMap contributors · Alerts: SACHET, NDMA · Weather: Open-Meteo
 </p>

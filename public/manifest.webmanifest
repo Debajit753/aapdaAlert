@@ -1,6 +1,6 @@
 {
-  "name": "apadaAlert",
-  "short_name": "apadaAlert",
+  "name": "aapdaAlert",
+  "short_name": "aapdaAlert",
   "description": "AI disaster companion and rescue SOS for North East India",
   "start_url": "/#home",
   "scope": "/",

@@ -23,7 +23,7 @@ export const $ = (sel, root = document) => root.querySelector(sel);
 let toastTimer = null;
 export function toast(msg, ms = 3500) {
   let el = $("#toast");
-  if (!el) { el = h("div", { id: "toast", role: "status", "aria-live": "polite" }); document.body.append(el); }
+  if (!el) { el = h("div", { id: "toast", role: "status", "aria-live": "polite" }); (document.getElementById("app") || document.body).append(el); }
   el.textContent = msg;
   el.classList.add("show");
   clearTimeout(toastTimer);
@@ -33,7 +33,7 @@ export function toast(msg, ms = 3500) {
 /** Full-screen layer on top of the app. Returns a close function. */
 export function overlay(content, { className = "", onClose } = {}) {
   const layer = h("div", { class: `overlay ${className}`, role: "dialog", "aria-modal": "true" }, content);
-  document.body.append(layer);
+  (document.getElementById("app") || document.body).append(layer);
   document.body.classList.add("has-overlay");
   const close = () => {
     layer.remove();

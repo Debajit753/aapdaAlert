@@ -90,7 +90,7 @@ export function renderTour(view, { goto, setLanguage, resetDemo }) {
       text: "An arrow points to the nearest relief camp using GPS and the phone's compass. It keeps working without a network.",
       action: btn("explore", "Open the compass", () => goto("camps")) }),
     card({ ic: "menu_book", tint: "green", title: "11. Safety guides and helplines",
-      text: "Flood, landslide and earthquake guides (before, during, after) with read aloud, and tap-to-call helplines.",
+      text: "Flood, landslide, earthquake and lightning guides (before, during, after), plus first aid (bleeding, not breathing, burns, snake bite), where to go if someone is hurt, safe water and an emergency bag checklist. All read aloud, with tap-to-call helplines.",
       action: h("div", { class: "row", style: { marginTop: 0 } }, btn("menu_book", "Guides", () => goto("guides")), btn("call", "Helplines", () => goto("help"))) }),
     card({ ic: "language", tint: "teal", title: "12. Four languages",
       text: "The whole app, the questions, the guides and the alerts work in English, Hindi, Assamese and Bengali.",

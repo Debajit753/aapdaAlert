@@ -229,6 +229,8 @@ async function showSteps({ answers, worried }) {
       h("button", { class: "btn", onclick: async () => { try { await navigator.clipboard.writeText(sms); toast(t("copied")); } catch { toast(sms, 8000); } } }, label("content_copy", t("copy_sms"))),
       h("button", { class: "btn", onclick: () => strobe(true) }, label("flashlight_on", t("strobe"))),
       isActive() ? h("a", { class: "btn span2", href: smsLink() }, label("sms", t("sms_sos"))) : null,
+      answers.injured === "bad" || answers.injured === "slight"
+        ? h("a", { class: "btn span2", href: "#guide/medical_help", onclick: () => close() }, label("local_hospital", t("first_aid"))) : null,
       worried ? h("button", { class: "btn primary span2", onclick: async () => { close(); await startDanger({ trigger: "sos" }); } }, label("siren", t("send_sos_now"))) : null),
     h("button", { class: "btn ghost wide", onclick: () => close() }, t("close")),
   );

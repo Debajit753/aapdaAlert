@@ -171,6 +171,16 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .tab.on { background: var(--bg); font-weight: 600; box-shadow: 0 1px 4px rgba(0, 0, 0, .12); }
 .tab .ic { width: 18px; height: 18px; }
 .guide { padding: 20px 20px 12px; }
+.guide-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 8px; }
+.tile-sub { display: block; font-size: 12px; font-weight: 400; color: var(--text-2); margin-top: 2px; }
+.guide-head { display: flex; align-items: center; gap: 12px; margin: 8px 0 16px; }
+.guide-head h1 { margin: 0; font-size: 26px; }
+.guide-head .chip-ic { width: 48px; height: 48px; border-radius: 14px; }
+.guide-head .chip-ic .ic { width: 28px; height: 28px; }
+.guide .steps li { line-height: 1.45; }
+.guide.topic { position: relative; padding-top: 16px; }
+.guide.topic .read { position: absolute; top: 6px; right: 6px; }
+.guide.topic .steps { margin-top: 0; padding-right: 36px; }
 .guide h2 { font-size: 19px; display: flex; align-items: center; gap: 8px; margin: 0; }
 .guide .dot-mark { width: 10px; height: 10px; border-radius: 50%; background: var(--text-3); }
 .guide.before .dot-mark { background: var(--blue); } .guide.during .dot-mark { background: var(--red); } .guide.after .dot-mark { background: var(--green); }

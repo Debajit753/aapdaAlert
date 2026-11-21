@@ -15,6 +15,7 @@ import { renderTour } from "./tour.js";
 import { renderPeople } from "./people.js";
 import { simulateOffline } from "./net.js";
 import { GUIDES } from "../data/guides.js";
+import { TOPICS, TOPIC_GROUPS } from "../data/topics.js";
 import { CAMPS } from "../data/camps.js";
 import { QUESTIONS_VERSION } from "../data/questions.js";
 
@@ -165,7 +166,7 @@ const NAV = [
   { id: "home", icon: "home", key: "nav_home" }, { id: "chat", icon: "forum", key: "nav_chat" },
   { id: "map", icon: "map", key: "nav_map" }, { id: "guides", icon: "menu_book", key: "nav_guides" }, { id: "more", icon: "menu", key: "nav_more" },
 ];
-const SUB_SCREENS = { help: "more", camps: "more", tools: "more", profile: "more", tour: "more" };
+const SUB_SCREENS = { help: "more", camps: "more", tools: "more", profile: "more", tour: "more", guide: "guides" };
 
 function renderShell() {
   fill(app,
@@ -184,8 +185,9 @@ function renderShell() {
 
 /** Top bar: the app mark on main screens, a back button on inner screens, and the person's initial on the right. */
 function updateTop(id) {
-  // Every screen except Home gets a back button. It returns to the screen the person came from.
-  const showBack = Boolean(id) && id !== "home";
+  // The five bottom-bar screens are reached from the bar, so they show the app mark.
+  // Only nested screens (Helplines, Camps, Strobe, My details, Feature tour) get a back button.
+  const showBack = Boolean(SUB_SCREENS[id]);
   fill($("#topleft"), showBack
     ? h("a", { class: "back", href: "#home", "aria-label": t("back"), onclick: (e) => { e.preventDefault(); goBack(); } }, icon("arrow_back"))
     : h("a", { class: "mark", href: "#home", "aria-label": "apadaAlert" }, h("img", { src: "/icons/icon.svg", alt: "" })));
@@ -209,14 +211,14 @@ function route() {
   const view = $("#view");
   if (!settings.introDone) { $("#nav").hidden = true; updateTop(null); return renderIntro(view); }
   $("#nav").hidden = false;
-  const id = (location.hash || "#home").slice(1) || "home";
+  const [id, arg] = ((location.hash || "#home").slice(1) || "home").split("/");
   current = id;
   if (id === "home") trail.length = 0;
   if (trail[trail.length - 1] !== id) trail.push(id);
   updateTop(id);
   const tab = SUB_SCREENS[id] || id;
   document.querySelectorAll("#nav a").forEach((a) => a.classList.toggle("active", a.dataset.id === tab));
-  const screens = { home: renderHome, chat: renderChatView, map: renderMap, guides: renderGuides, more: renderMore, help: renderHelp, camps: renderCamps, tools: renderTools, profile: renderProfile, tour: renderTourView };
+  const screens = { home: renderHome, chat: renderChatView, map: renderMap, guides: renderGuides, guide: (v) => renderGuide(v, arg), more: renderMore, help: renderHelp, camps: renderCamps, tools: renderTools, profile: renderProfile, tour: renderTourView };
   (screens[id] || renderHome)(view);
   window.scrollTo(0, 0);
 }
@@ -433,22 +435,57 @@ function renderChatView(view) {
 }
 
 // ---------------- guides (PRD F7) ----------------
+const HAZARD_TINT = { flood: "blue", landslide: "orange", earthquake: "purple", lightning: "teal" };
+
+/** The guides library: disasters first, then first aid, health and preparing. */
 function renderGuides(view) {
-  let hz = "flood";
-  const body = h("div");
-  const tabs = h("div", { class: "tabs", role: "tablist" }, Object.keys(GUIDES).map((k) => h("button", {
-    class: `tab ${k === hz ? "on" : ""}`, "data-id": k, role: "tab",
-    onclick: () => { hz = k; tabs.querySelectorAll(".tab").forEach((b) => b.classList.toggle("on", b.dataset.id === hz)); draw(); },
-  }, icon(GUIDES[k].icon), t(`hz_${k}`))));
-  const draw = () => fill(body, ["before", "during", "after"].map((ph) => {
-    const items = pick(GUIDES[hz][ph]);
-    return h("section", { class: `card guide ${ph}` },
-      h("div", { class: "row between" }, h("h2", {}, h("span", { class: "dot-mark" }), t(ph)),
-        h("button", { class: "icon-btn", "aria-label": t("read_aloud"), onclick: () => speak(`${t(ph)}. ${items.join(". ")}`) }, icon("volume_up"))),
-      h("ol", { class: "steps" }, items.map((x) => h("li", {}, x))));
-  }));
-  fill(view, h("h1", {}, t("guides_title")), tabs, body);
-  draw();
+  fill(view,
+    h("h1", {}, t("guides_title")),
+    h("p", { class: "muted" }, t("guides_sub")),
+    h("h3", {}, t("g_disasters")),
+    h("div", { class: "guide-grid" }, Object.keys(GUIDES).map((k) => h("a", { class: "tile", href: `#guide/${k}` },
+      h("span", { class: `chip-ic ${HAZARD_TINT[k] || ""}` }, icon(GUIDES[k].icon)),
+      h("span", {}, t(`hz_${k}`), h("span", { class: "tile-sub" }, t("phases")))))),
+    TOPIC_GROUPS.map((g) => [
+      h("h3", {}, t(g.key)),
+      h("div", { class: "list" }, g.topics.map((id) => listRow({ href: `#guide/${id}`, ic: TOPICS[id].icon, tint: TOPICS[id].tint, title: pick(TOPICS[id].title) }))),
+    ]));
+}
+
+/** One guide: a disaster (before, during, after) or a topic (numbered steps and actions). */
+function renderGuide(view, id) {
+  if (GUIDES[id]) {
+    const g = GUIDES[id];
+    fill(view,
+      h("h1", {}, t(`hz_${id}`)),
+      ["before", "during", "after"].map((ph) => {
+        const items = pick(g[ph]);
+        return h("section", { class: `card guide ${ph}` },
+          h("div", { class: "row between" }, h("h2", {}, h("span", { class: "dot-mark" }), t(ph)),
+            h("button", { class: "icon-btn", "aria-label": t("read_aloud"), onclick: () => speak(`${t(ph)}. ${items.join(". ")}`) }, icon("volume_up"))),
+          h("ol", { class: "steps" }, items.map((x) => h("li", {}, x))));
+      }));
+    return;
+  }
+  const topic = TOPICS[id];
+  if (!topic) return renderGuides(view);
+  const steps = pick(topic.steps);
+  const loc = lastLocation();
+  const ACTIONS = {
+    call108: () => h("a", { class: "btn call", href: "tel:108" }, label("call", t("a_call108"))),
+    hospitals: () => h("a", { class: "btn", target: "_blank", rel: "noopener",
+      href: loc ? `https://www.google.com/maps/search/hospital/@${loc.lat},${loc.lon},14z` : "https://www.google.com/maps/search/hospital+near+me" }, label("local_hospital", t("a_hospitals"))),
+    camps: () => h("a", { class: "btn", href: "#camps" }, label("medical_services", t("a_camps"))),
+    profile: () => h("a", { class: "btn", href: "#profile" }, label("manage_accounts", t("my_details"))),
+  };
+  const medical = TOPIC_GROUPS.find((g) => g.id === "hurt").topics.includes(id);
+  fill(view,
+    h("div", { class: "guide-head" }, h("span", { class: `chip-ic ${topic.tint}` }, icon(topic.icon)), h("h1", {}, pick(topic.title))),
+    medical ? h("p", { class: "notice" }, icon("info"), h("span", {}, t("fa_note"))) : null,
+    h("section", { class: "card guide topic" },
+      h("button", { class: "icon-btn read", "aria-label": t("read_aloud"), onclick: () => speak(`${pick(topic.title)}. ${steps.join(" ")}`) }, icon("volume_up")),
+      h("ol", { class: "steps" }, steps.map((x) => h("li", {}, x)))),
+    topic.actions.length ? h("div", { class: "stack" }, topic.actions.map((a) => ACTIONS[a]())) : null);
 }
 
 // ---------------- helplines (PRD F8) ----------------

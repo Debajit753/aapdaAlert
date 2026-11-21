@@ -276,7 +276,11 @@ Every reply is structured JSON, so the app can show buttons rather than just tex
 
 ### F7. Safety guides
 
-- Flood, landslide and earthquake, each split into **Before, During and After**.
+- Flood, landslide, earthquake and **lightning**, each split into **Before, During and After**.
+- **If someone is hurt:** where to go (with Call 108, Hospitals near me and Camps with medical care buttons), heavy bleeding, not breathing (drowning, shock), broken bones, burns, snake bite, electric shock. Marked as basic first aid only.
+- **Staying healthy:** safe drinking water, and illness after floods (diarrhoea and ORS, leptospirosis, mosquitoes).
+- **Be prepared:** emergency bag checklist, and helping elderly, children and disabled people.
+- The "Do this now" screen links to the first aid guides when someone is hurt.
 - In all four languages, with read aloud.
 - Saved on the phone with the rest of the app (F1), so they open without a network.
 

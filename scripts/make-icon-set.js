@@ -30,6 +30,8 @@ const NAMES = [
   // weather, official alerts and nearby chat
   "sunny", "partly_cloudy_day", "cloud", "foggy", "rainy", "rainy_heavy", "thunderstorm", "weather_mix", "water_drop",
   "account_balance", "flag",
+  // detailed guides
+  "local_hospital", "bloodtype", "monitor_heart", "local_fire_department", "pest_control", "electric_bolt", "sick", "backpack", "medical_services",
 ];
 
 // Filled versions, used only for the active tab (UX4G rule: filled = selected state)

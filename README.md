@@ -24,7 +24,8 @@ Built for PromptWars x Code1 Innovators, problem statement PS05 (Northeast Conne
 - **Control room.** A live map, a queue ranked by a fixed urgency formula, a one-line Gemini reason, the person's chat history, status updates and alerts translated automatically.
 - **Official alerts and weather:** live government alerts for North East India from SACHET (NDMA: IMD, CWC, state disaster authorities), and the weather where you are (Open-Meteo).
 - **People nearby:** a chat with everyone within 30 km (I'm safe, Need help, Have a boat...), moderated by reports, visible to the control room.
-- **Also:** hazard map with merged reports and AI photo checks, relief camps with a compass, a strobe and whistle, safety guides, helplines, and an SMS fallback.
+- **Safety guides:** flood, landslide, earthquake and lightning (before, during, after), plus first aid, where to go if someone is hurt, safe water, health after floods, and an emergency bag checklist, in four languages.
+- **Also:** hazard map with merged reports and AI photo checks, relief camps with a compass, a strobe and whistle, helplines, and an SMS fallback.
 
 ## For judges: see every feature in 2 minutes
 

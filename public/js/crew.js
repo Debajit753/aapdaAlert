@@ -1,6 +1,7 @@
 // Crew page (PRD F17): shares the rescue unit's GPS and lists the nearest SOS requests.
 import { h, fill } from "./ui.js";
 import { icon, label } from "./icons.js";
+import { apiUrl } from "./apiurl.js";
 
 const root = document.querySelector("#crew");
 const store = {
@@ -26,7 +27,7 @@ async function send() {
   if (!pos) { error = "No GPS fix yet. Allow location for this page."; return draw(); }
   last = pos;
   try {
-    const res = await fetch(`/api/units/${unitId}/position`, {
+    const res = await fetch(apiUrl(`units/${unitId}/position`), {
       method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ ...pos, callSign: cfg.callSign, type: cfg.type, demo: Boolean(sim) }),
     });
@@ -45,13 +46,13 @@ function start() {
 }
 function stop() {
   sharing = false; clearInterval(timer); sim = null;
-  fetch(`/api/units/${unitId}`, { method: "DELETE" }).catch(() => {});
+  fetch(apiUrl(`units/${unitId}`), { method: "DELETE" }).catch(() => {});
   draw();
 }
 
 // Demo: fly toward the nearest active SOS without moving the phone
 async function simulate() {
-  const res = await fetch("/api/dashboard/sos").then((r) => r.json()).catch(() => null);
+  const res = await fetch(apiUrl("dashboard/sos")).then((r) => r.json()).catch(() => null);
   const target = res?.sos?.find((s) => ["received", "dispatched"].includes(s.status) && s.lat != null);
   if (!target) { error = "No active SOS with a location to fly to."; return draw(); }
   const b = Math.random() * 2 * Math.PI;

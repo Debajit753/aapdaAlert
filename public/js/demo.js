@@ -1,4 +1,5 @@
 // Demo helpers for the feature tour: a simulated rescue helicopter that flies toward an SOS.
+import { apiUrl } from "./apiurl.js";
 const R = 6371;
 const rad = (d) => (d * Math.PI) / 180;
 
@@ -23,7 +24,7 @@ export function flyDemoHelicopter(target, onTick = () => {}) {
   stopDemoHelicopter();
   const id = `demo-heli-${Math.random().toString(36).slice(2, 8)}`;
   const pos = offset(target, 12, Math.random() * 360);
-  const post = (extra = {}) => fetch(`/api/units/${id}/position`, {
+  const post = (extra = {}) => fetch(apiUrl(`units/${id}/position`), {
     method: "POST", headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ ...pos, callSign: "HELI-DEMO", type: "helicopter", speedKmh: 180, demo: true, ...extra }),
   }).catch(() => {});
@@ -38,7 +39,7 @@ export function flyDemoHelicopter(target, onTick = () => {}) {
     onTick(Math.max(0, d));
   };
   const timer = setInterval(tick, 2000);
-  active = { stop() { clearInterval(timer); fetch(`/api/units/${id}`, { method: "DELETE" }).catch(() => {}); } };
+  active = { stop() { clearInterval(timer); fetch(apiUrl(`units/${id}`), { method: "DELETE" }).catch(() => {}); } };
   tick();
   return stopDemoHelicopter;
 }

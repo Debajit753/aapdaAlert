@@ -1,5 +1,6 @@
 // Talking to the server, and the outbox that keeps retrying until the network is back.
 import { outbox } from "./state.js";
+import { apiUrl } from "./apiurl.js";
 
 let netOk = navigator.onLine;
 let sending = false;
@@ -27,7 +28,7 @@ export async function api(path, { method = "GET", body, timeout = 10000 } = {}) 
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeout);
   try {
-    const res = await fetch(`/api/${path}`, {
+    const res = await fetch(apiUrl(path), {
       method,
       headers: body ? { "Content-Type": "application/json" } : undefined,
       body: body ? JSON.stringify(body) : undefined,

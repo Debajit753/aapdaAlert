@@ -1,4 +1,4 @@
-// Local development server: serves /public like Vercel does and sends /api/* to the same handlers.
+// Local development server: serves /public like Vercel does and sends /api/* to the same router as Vercel.
 // Run with: npm run dev   (then open http://localhost:3000)
 import http from "node:http";
 import fs from "node:fs";
@@ -8,7 +8,7 @@ import { fileURLToPath } from "node:url";
 const here = path.dirname(fileURLToPath(import.meta.url));
 try { process.loadEnvFile(path.join(here, ".env")); } catch { /* no .env: demo mode */ }
 
-const { handle } = await import("./lib/handlers.js");
+const { default: router } = await import("./api/router.js");
 const PUBLIC = path.join(here, "public");
 const PORT = Number(process.env.PORT) || 3000;
 const TYPES = {
@@ -19,10 +19,8 @@ const TYPES = {
 
 http.createServer(async (req, res) => {
   const url = new URL(req.url, `http://localhost:${PORT}`);
-  if (url.pathname.startsWith("/api/")) {
-    const query = Object.fromEntries(url.searchParams);
-    return handle(req, res, decodeURIComponent(url.pathname.slice(5)), query);
-  }
+  // Same entry point as on Vercel: api/router.js reads the route from ?path= (or from the address itself)
+  if (url.pathname.startsWith("/api/")) return router(req, res);
   // Static files with clean URLs (/dashboard -> dashboard.html)
   let rel = decodeURIComponent(url.pathname);
   if (rel === "/") rel = "/index.html";

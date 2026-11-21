@@ -2,6 +2,7 @@
 // Reading aloud uses the Gemini AI voice in the person's own language when it can, and saves the audio
 // on the phone so it plays again without a network. Otherwise it falls back to the phone's built-in voice.
 import { speechLang, getLang } from "./i18n.js";
+import { apiUrl } from "./apiurl.js";
 
 const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 export const canListen = () => Boolean(Recognition);
@@ -25,7 +26,7 @@ export function listen(onState = () => {}) {
 }
 
 // ---------- AI voice ----------
-const voiceUrl = (text, lang) => `/api/voice?lang=${lang}&text=${encodeURIComponent(text)}`;
+const voiceUrl = (text, lang) => apiUrl(`voice?lang=${lang}&text=${encodeURIComponent(text)}`);
 let current = null; // the Audio that is playing
 let turn = 0;       // newer speak() calls cancel older ones
 

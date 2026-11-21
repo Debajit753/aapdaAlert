@@ -2,6 +2,7 @@
 import { h, fill } from "./ui.js";
 import { icon, iconHtml, label } from "./icons.js";
 import { addBaseMap } from "./basemap.js";
+import { apiUrl } from "./apiurl.js";
 import { QUESTIONS } from "../data/questions.js";
 import { CAMPS, DEMO_CENTRE } from "../data/camps.js";
 
@@ -13,7 +14,7 @@ const HAZARD_ICON = { flood: "flood", landslide: "landslide", earthquake: "earth
 const UNIT_ICON = { helicopter: "helicopter", boat: "directions_boat", ground: "ambulance" };
 
 async function api(path, opts = {}) {
-  const res = await fetch(`/api/${path}`, {
+  const res = await fetch(apiUrl(path), {
     method: opts.method || "GET",
     headers: opts.body ? { "Content-Type": "application/json" } : undefined,
     body: opts.body ? JSON.stringify(opts.body) : undefined,

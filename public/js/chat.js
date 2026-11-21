@@ -98,16 +98,20 @@ export function renderChat(root, { getContext, goto }) {
     const danger = looksLikeDanger(text);
     const hazard = detectHazard(text);
 
-    // Danger words are checked on the phone: switch to the tap questions at once, no waiting for the AI
-    if (danger || !isOnline()) {
+    // Danger words are checked on the phone: switch to the tap questions at once, no waiting for the AI.
+    // If an SOS is already active, rescuers have it, so the message goes to the companion as normal chat.
+    const sosOpen = isActive();
+    if ((danger && !sosOpen) || !isOnline()) {
       logChat({ role: "user", text, mode: "chat" });
       draw();
-      if (danger) return startDanger({ trigger: "chat", hazardHint: hazard, onLeftover: askLeftovers });
+      if (danger && !sosOpen) return startDanger({ trigger: "chat", hazardHint: hazard, onLeftover: askLeftovers });
       return note(t("chat_offline"));
     }
 
     const msg = { id: uid(), at: new Date().toISOString(), role: "user", text, mode: "chat" };
-    const history = getChat().filter((m) => m.mode === "chat" || m.mode === "danger").slice(-12).map((m) => ({ role: m.role, text: m.text }));
+    // Only real conversation goes in the history. The quick-question answers are sent once, in the context
+    // (sosAnswers), so the AI doesn't keep replying to them.
+    const history = getChat().filter((m) => m.mode === "chat" && m.text).slice(-10).map((m) => ({ role: m.role, text: m.text }));
     addChat(msg);
     draw();
     const typing = aiRow(h("div", { class: "msg ai typing" }, h("span"), h("span"), h("span")), true);
@@ -121,7 +125,8 @@ export function renderChat(root, { getContext, goto }) {
       addChat({ ...r.reply, mode: "chat" });
       draw();
       speak(r.reply.text, { waitMs: 0 });
-      if (r.danger) startDanger({ trigger: "chat", hazardHint: r.hazard !== "none" ? r.hazard : hazard, onLeftover: askLeftovers });
+      // New danger: open the quick questions, unless an SOS is already with the control room
+      if (r.danger && !isActive()) startDanger({ trigger: "chat", hazardHint: r.hazard !== "none" ? r.hazard : hazard, onLeftover: askLeftovers });
     } catch (e) {
       typing.remove();
       // The message is kept on the phone and uploaded later if it never reached the server

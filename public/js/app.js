@@ -406,6 +406,8 @@ function chatContext() {
     weather: ls.get("aa.weather")?.data || null,
     nearestCamp: camp ? { name: camp.c.name, km: Math.round(camp.km * 10) / 10, demo: true } : null,
     sosStatus: s ? (s.delivered ? s.status : "saved on phone, not yet delivered") : "no SOS",
+    sosActive: isActive(s),
+    sosAnswers: isActive(s) ? s.answers : null,
     location: loc ? "known" : "unknown",
   };
 }

@@ -1,11 +1,12 @@
 // Service worker: saves the app on the phone so it opens without a network (PRD F1).
 // The SOS button, danger questions and guides then work offline. Bump VERSION after changing files.
-const VERSION = "aa-v1";
+const VERSION = "aa-v5";
 const APP = [
   "/", "/index.html", "/styles.css", "/manifest.webmanifest", "/icons/icon.svg", "/icons/icon-192.png",
   "/js/app.js", "/js/i18n.js", "/js/state.js", "/js/net.js", "/js/location.js", "/js/voice.js", "/js/ui.js",
-  "/js/tools.js", "/js/sos.js", "/js/danger.js", "/js/chat.js", "/js/map.js",
+  "/js/icons.js", "/js/tools.js", "/js/sos.js", "/js/danger.js", "/js/chat.js", "/js/map.js", "/js/basemap.js", "/js/tour.js", "/js/people.js", "/js/demo.js", "/icons/companion.svg",
   "/data/questions.js", "/data/guides.js", "/data/camps.js",
+  "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap",
   "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css", "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js",
 ];
 
@@ -14,7 +15,7 @@ self.addEventListener("install", (e) => {
 });
 
 self.addEventListener("activate", (e) => {
-  e.waitUntil(caches.keys().then((keys) => Promise.all(keys.filter((k) => k !== VERSION && k !== "aa-tiles").map((k) => caches.delete(k)))).then(() => self.clients.claim()));
+  e.waitUntil(caches.keys().then((keys) => Promise.all(keys.filter((k) => k !== VERSION && k !== "aa-tiles" && k !== "aa-voice").map((k) => caches.delete(k)))).then(() => self.clients.claim()));
 });
 
 self.addEventListener("fetch", (e) => {

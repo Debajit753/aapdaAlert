@@ -6,7 +6,16 @@ let sending = false;
 let retryTimer = null;
 let retryDelay = 3000;
 
-export const isOnline = () => navigator.onLine && netOk;
+// The feature tour can pretend the network is down, to show that nothing is lost.
+let simOffline = false;
+export const isSimOffline = () => simOffline;
+export function simulateOffline(on) {
+  simOffline = Boolean(on);
+  setStatus();
+  if (!simOffline) { retryDelay = 3000; flush(); }
+}
+
+export const isOnline = () => !simOffline && navigator.onLine && netOk;
 
 function setStatus() {
   window.dispatchEvent(new CustomEvent("net-status", { detail: { online: isOnline(), sending } }));
@@ -14,6 +23,7 @@ function setStatus() {
 
 /** fetch with a timeout. Throws {status} on HTTP errors and {offline:true} on network errors. */
 export async function api(path, { method = "GET", body, timeout = 10000 } = {}) {
+  if (simOffline) throw Object.assign(new Error("Network error"), { offline: true });
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeout);
   try {
@@ -73,10 +83,6 @@ export async function flush() {
   } else {
     retryDelay = 3000;
   }
-}
-
-export async function pendingKeys() {
-  return ((await outbox.all()) || []).map((x) => x.key);
 }
 
 window.addEventListener("online", () => { netOk = true; setStatus(); flush(); });

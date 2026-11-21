@@ -22,7 +22,26 @@ Built for PromptWars x Code1 Innovators, problem statement PS05 (Northeast Conne
 - **Works through network drops.** Each SOS, answer and report waits in an outbox on the phone and sends itself when the network returns, with no duplicates. The app, guides and danger questions open with no network.
 - **Rescue helicopter alert.** When a rescue unit comes within 10 km, the phone says "get ready". Within 3 km it vibrates, whistles, and flashes SOS in Morse code.
 - **Control room.** A live map, a queue ranked by a fixed urgency formula, a one-line Gemini reason, the person's chat history, status updates and alerts translated automatically.
+- **Official alerts and weather:** live government alerts for North East India from SACHET (NDMA: IMD, CWC, state disaster authorities), and the weather where you are (Open-Meteo).
+- **People nearby:** a chat with everyone within 30 km (I'm safe, Need help, Have a boat...), moderated by reports, visible to the control room.
 - **Also:** hazard map with merged reports and AI photo checks, relief camps with a compass, a strobe and whistle, safety guides, helplines, and an SMS fallback.
+
+## For judges: see every feature in 2 minutes
+
+Open the app and tap **"Judge? Skip to the feature tour"** on the first screen (or open `/#tour` later, or **More > Feature tour**). It fills in sample details and shows one card per feature, each with a button that demonstrates it:
+
+| Card | What the button does |
+|---|---|
+| 1. Send first, ask after | Sends a demo SOS and opens the quick questions |
+| 2. Tap-only danger questions | Opens the questions without sending an SOS |
+| 3. AI companion | Opens the chat |
+| 4. Network drop protection | A switch that simulates no network: send an SOS, see "Saved on phone", switch back and watch it send |
+| 5. Rescue helicopter alert | Flies a demo helicopter to your SOS: "Get ready" at 10 km, "Signal now!" at 3 km |
+| 6. Strobe and whistle | Starts the SOS strobe and whistle |
+| 7 and 8. Dashboard and crew page | Open the rescuer side in a new tab |
+| 9 to 12 | Hazard map, compass, guides and helplines, four languages |
+
+Keep the dashboard (`/dashboard`) open on a second screen while you try cards 1, 4 and 5: every SOS, answer and helicopter shows up there live.
 
 ## Run it on your computer
 
@@ -83,6 +102,20 @@ Check that it's connected: open `https://your-app.vercel.app/api/health`. It sho
 
 If Gemini replies with a "model not found" error, set `GEMINI_MODEL` to a model ID listed in Google AI Studio.
 
+## AI voice in the person's own language
+
+In danger mode, the quick questions and the helicopter alert are read aloud by a natural Gemini voice in English, Hindi, Assamese or Bengali. Most phones have no built-in Assamese voice, so this matters most there.
+
+- Each phrase is made once, saved in Firestore, and then saved on every phone that uses it, so it plays instantly and also with no network.
+- The free Gemini plan allows only **10 voice requests a day per model**. The server tries two models, so about 20 a day. That is why only fixed phrases use the AI voice; changing text (safety steps, chat, guides) uses the phone's own voice.
+- **Before the demo, prepare all the voices once** (about 32 phrases for four languages):
+
+```powershell
+node scripts/prepare-voices.js
+```
+
+It skips phrases already saved. If it stops at the daily limit, run it again after the limit resets (midnight US Pacific time, which is 1:30 PM IST).
+
 ## Demo script (3 minutes)
 
 1. **Install:** open the Vercel link on an Android phone and add it to the home screen. Pick a language, go through the intro and enter sample details (4 people, 1 elderly). Use sample names and numbers, not real ones.
@@ -96,6 +129,15 @@ If Gemini replies with a "model not found" error, set `GEMINI_MODEL` to a model 
 
 Before the demo, test voice on the demo phone. If Assamese voice doesn't work there, show Assamese as text and use Hindi or Bengali for the spoken parts.
 
+## Design
+
+- **Theme:** white, with one accent red for SOS and soft tints for everything else.
+- **Font:** SF Pro on Apple devices (it is the system font there). On Android and Windows the app uses Inter, the closest open match. Apple's licence doesn't allow hosting SF Pro files on a website, so the app doesn't ship them.
+- **Icons:** Material Symbols Outlined, following the Government of India's [UX4G design system](https://www.ux4g.gov.in/foundations/iconography): outlined by default, filled only for the active tab. Inlined as SVG in `public/js/icons.js` so they work offline. Apache License 2.0. To add one, see `scripts/make-icon-set.js`.
+- **Logo:** a location pin sending out a signal, because the app's job is to get your location to rescuers.
+- **Companion:** its avatar is a friendly face in a speech bubble, in calm green, shown beside its messages.
+- **Navigation:** a back button on every screen except Home, and on each quick question so an answer can be changed.
+
 ## Project layout
 
 ```
@@ -105,7 +147,7 @@ lib/gemini.js          Every Gemini call (chat, next question, steps, SOS reason
 lib/db.js              Firestore, or the demo store when no Firebase key is set
 lib/score.js           Fixed urgency formula
 public/index.html      Citizen app
-public/js/             App code (danger mode, chat, SOS outbox, map, strobe, voice...)
+public/js/             App code (danger mode, chat, SOS outbox, map, strobe, voice, icons, feature tour...)
 public/data/           Question list, guides, demo camps (shared by the app and the server)
 public/dashboard.html  Control room
 public/crew.html       Crew page

@@ -1,7 +1,7 @@
 // Safety guides (PRD F7). Translations must be checked by a native speaker before real use.
 export const GUIDES = {
   flood: {
-    icon: "🌊",
+    icon: "flood",
     before: {
       en: ["Keep documents, medicines, a torch and a phone charger in a waterproof bag.", "Know the nearest relief camp and the safest way to higher ground.", "Store drinking water and dry food for 3 days.", "Save helpline numbers: 112, 1070, 1077."],
       hi: ["दस्तावेज़, दवाइयाँ, टॉर्च और फ़ोन चार्जर वाटरप्रूफ़ थैले में रखें।", "सबसे पास का राहत शिविर और ऊँची जगह तक का सुरक्षित रास्ता जानें।", "3 दिन का पीने का पानी और सूखा खाना रखें।", "हेल्पलाइन नंबर सेव करें: 112, 1070, 1077।"],
@@ -22,7 +22,7 @@ export const GUIDES = {
     },
   },
   landslide: {
-    icon: "⛰️",
+    icon: "landslide",
     before: {
       en: ["Watch for new cracks in walls, ground or roads, and tilting trees or poles.", "During heavy rain, stay away from steep slopes and drains.", "Plan an escape route that goes sideways, away from the slope.", "Listen for rumbling or cracking sounds during heavy rain."],
       hi: ["दीवारों, ज़मीन या सड़क में नई दरारें और झुकते पेड़ या खंभे देखें।", "भारी बारिश में खड़ी ढलानों और नालों से दूर रहें।", "ढलान से हटकर बगल की ओर निकलने का रास्ता तय रखें।", "भारी बारिश में गड़गड़ाहट या चटकने की आवाज़ पर ध्यान दें।"],
@@ -43,7 +43,7 @@ export const GUIDES = {
     },
   },
   earthquake: {
-    icon: "🏚️",
+    icon: "earthquake",
     before: {
       en: ["Fix heavy furniture and gas cylinders to the wall.", "Know the safe spots: under a strong table, against an inside wall.", "Keep an emergency bag ready.", "Practise Drop, Cover, Hold On with your family."],
       hi: ["भारी फ़र्नीचर और गैस सिलेंडर दीवार से बाँधकर रखें।", "सुरक्षित जगहें जानें: मज़बूत मेज़ के नीचे, अंदर की दीवार के पास।", "आपातकालीन बैग तैयार रखें।", "परिवार के साथ झुकें, ढकें, पकड़ें का अभ्यास करें।"],

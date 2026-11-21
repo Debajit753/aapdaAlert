@@ -1,60 +1,95 @@
 // Community hazard map (PRD F9) with reports, relief camps and rescue units.
 import { t } from "./i18n.js";
-import { h, overlay, toast, timeAgo } from "./ui.js";
+import { h, overlay, toast, timeAgo, fill } from "./ui.js";
+import { icon, iconHtml, label } from "./icons.js";
 import { api, queue, isOnline } from "./net.js";
 import { deviceId, uid } from "./state.js";
 import { lastLocation, getPosition } from "./location.js";
 import { CAMPS, DEMO_CENTRE } from "../data/camps.js";
+import { addBaseMap } from "./basemap.js";
+import { distanceKm } from "./tools.js";
 
 export const REPORT_TYPES = [
-  { id: "road_flooded", icon: "🌊" }, { id: "landslide", icon: "⛰️" }, { id: "road_blocked", icon: "🚧" },
-  { id: "bridge_damaged", icon: "🌉" }, { id: "camp_open", icon: "⛺" },
+  { id: "road_flooded", icon: "flood" }, { id: "landslide", icon: "landslide" }, { id: "road_blocked", icon: "remove_road" },
+  { id: "bridge_damaged", icon: "destruction" }, { id: "camp_open", icon: "camping" },
 ];
-const typeIcon = (id) => REPORT_TYPES.find((r) => r.id === id)?.icon || "⚠️";
+const typeIcon = (id) => REPORT_TYPES.find((r) => r.id === id)?.icon || "warning";
+const UNIT_ICON = { helicopter: "helicopter", boat: "directions_boat", ground: "ambulance" };
 
-const emojiIcon = (emoji, cls = "") => window.L.divIcon({ className: `emoji-pin ${cls}`, html: `<span>${emoji}</span>`, iconSize: [36, 36], iconAnchor: [18, 18] });
+const pin = (name, cls = "") => window.L.divIcon({ className: `pin ${cls}`, html: iconHtml(name), iconSize: [36, 36], iconAnchor: [18, 18] });
 
 export function renderMap(root) {
   const here = lastLocation() || DEMO_CENTRE;
   const mapEl = h("div", { id: "map", class: "map" });
-  const hint = h("p", { class: "muted small map-hint" }, `👆 ${t("map_hint")}`);
-  const reportBtn = h("button", { class: "btn primary fab", onclick: async () => { const l = (await getPosition()) || here; openReport(l); } }, `➕ ${t("report")}`);
-  root.replaceChildren(h("div", { class: "map-wrap" }, h("h1", { class: "sr-only" }, t("map_title")), mapEl, hint, reportBtn));
+  const listEl = h("div", {});
+  let load = () => {};
+  const legend = (cls, text) => h("span", { class: "legend-item" }, h("span", { class: `legend-dot ${cls}` }), text);
+  const reportBtn = h("button", { class: "btn primary wide", onclick: async () => { const l = (await getPosition()) || here; openReport(l, () => load()); } }, label("add_location_alt", t("report")));
 
   if (!window.L || !isOnline()) {
-    mapEl.replaceWith(h("div", { class: "card" }, h("p", {}, `📡 ${t("map_offline")}`),
-      h("h3", {}, t("camps")), h("ul", { class: "plain" }, CAMPS.map((c) => h("li", {}, `⛺ ${c.name}`)))));
+    fill(root,
+      h("h1", {}, t("map_title")),
+      h("p", { class: "notice" }, icon("wifi_off"), h("span", {}, t("map_offline"))),
+      reportBtn,
+      h("h3", {}, t("camps")),
+      h("div", { class: "list" }, CAMPS.map((c) => h("div", { class: "list-row" }, h("span", { class: "chip-ic green" }, icon("camping")), h("span", { class: "grow" }, c.name)))));
     return;
   }
 
-  const map = window.L.map(mapEl, { zoomControl: true }).setView([here.lat, here.lon], 13);
-  window.L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
-    maxZoom: 19, attribution: "© OpenStreetMap contributors",
-  }).addTo(map);
+  const locateBtn = h("button", { class: "map-btn", "aria-label": t("my_loc") }, icon("my_location"));
+  fill(root,
+    h("h1", {}, t("map_title")),
+    h("div", { class: "legend" }, legend("hazard", t("hazards")), legend("camp", t("camps")), legend("unit", t("units"))),
+    h("div", { class: "map-wrap" }, mapEl, locateBtn),
+    reportBtn,
+    h("p", { class: "muted small center", style: { marginTop: "10px" } }, t("map_hint")),
+    h("h3", {}, t("nearby")),
+    listEl);
 
-  if (lastLocation()) window.L.circleMarker([here.lat, here.lon], { radius: 9, color: "#fff", weight: 3, fillColor: "#1d6fe0", fillOpacity: 1 }).addTo(map).bindPopup("📍");
+  const map = window.L.map(mapEl, { zoomControl: false, attributionControl: true }).setView([here.lat, here.lon], 13);
+  addBaseMap(map);
+  const me = lastLocation() ? window.L.circleMarker([here.lat, here.lon], { radius: 9, color: "#fff", weight: 3, fillColor: "#0071e3", fillOpacity: 1 }).addTo(map) : null;
+  locateBtn.addEventListener("click", async () => {
+    const l = await getPosition();
+    if (!l) return toast(t("loc_none"));
+    me?.setLatLng([l.lat, l.lon]);
+    map.setView([l.lat, l.lon], 15);
+  });
   for (const c of CAMPS) {
-    window.L.marker([c.lat, c.lon], { icon: emojiIcon("⛺", "camp") }).addTo(map)
+    window.L.marker([c.lat, c.lon], { icon: pin("camping", "camp") }).addTo(map)
       .bindPopup(`<b>${escapeHtml(c.name)}</b><br>${t("capacity", { n: c.capacity })}<br><i>${t("camps_demo")}</i>`);
   }
 
   const reportLayer = window.L.layerGroup().addTo(map);
   const unitLayer = window.L.layerGroup().addTo(map);
-  async function load() {
+  load = async () => {
     try {
       const r = await api(`reports?lat=${here.lat}&lon=${here.lon}&radius=40`);
       reportLayer.clearLayers();
+      const rows = [];
       for (const x of r.reports) {
-        const label = `<b>${typeIcon(x.type)} ${t(`rt_${x.type}`)}</b><br>${x.count > 1 ? t("confirmed", { n: x.count }) : t("one_report")}` +
-          `${x.verified ? `<br>✅ ${t("ai_verified")}` : ""}${x.demo ? ` <i>(${t("demo")})</i>` : ""}<br>${timeAgo(x.latestAt, t)}` +
+        const count = x.count > 1 ? t("confirmed", { n: x.count }) : t("one_report");
+        const popup = `<b>${t(`rt_${x.type}`)}</b><br>${count}` +
+          `${x.verified ? `<br>${iconHtml("verified")} ${t("ai_verified")}` : ""}${x.demo ? ` <i>(${t("demo")})</i>` : ""}<br>${timeAgo(x.latestAt, t)}` +
           (x.notes.length ? `<br>${x.notes.slice(-2).map(escapeHtml).join("<br>")}` : "");
-        window.L.marker([x.lat, x.lon], { icon: emojiIcon(typeIcon(x.type), x.count > 1 ? "confirmed" : "") }).addTo(reportLayer).bindPopup(label);
+        const marker = window.L.marker([x.lat, x.lon], { icon: pin(typeIcon(x.type), x.count > 1 ? "confirmed" : "") }).addTo(reportLayer).bindPopup(popup);
+        rows.push({ x, count, marker, km: distanceKm(here, x) });
       }
+      rows.sort((p, q) => p.km - q.km);
+      fill(listEl, rows.length
+        ? h("div", { class: "list" }, rows.map(({ x, count, marker, km }) => h("button", {
+          class: "list-row as-btn",
+          onclick: () => { map.setView([x.lat, x.lon], 15); marker.openPopup(); mapEl.scrollIntoView({ behavior: "smooth", block: "center" }); },
+        },
+          h("span", { class: `chip-ic ${x.count > 1 ? "red" : "orange"}` }, icon(typeIcon(x.type))),
+          h("span", { class: "grow" }, t(`rt_${x.type}`), h("span", { class: "sub" }, `${count} · ${timeAgo(x.latestAt, t)}${x.demo ? ` · ${t("demo")}` : ""}`)),
+          h("span", { class: "end" }, t("km_away", { km: km.toFixed(1) })))))
+        : h("p", { class: "muted" }, t("none_nearby")));
       const u = await api("units");
       unitLayer.clearLayers();
-      for (const x of u.units) window.L.marker([x.lat, x.lon], { icon: emojiIcon(x.type === "boat" ? "🚤" : x.type === "ground" ? "🚑" : "🚁", "unit") }).addTo(unitLayer).bindPopup(escapeHtml(x.callSign));
+      for (const x of u.units) window.L.marker([x.lat, x.lon], { icon: pin(UNIT_ICON[x.type] || "helicopter", "unit") }).addTo(unitLayer).bindPopup(escapeHtml(x.callSign));
     } catch { /* keep what is shown */ }
-  }
+  };
   load();
   const timer = setInterval(() => { if (!root.isConnected) return clearInterval(timer); load(); }, 30000);
   map.on("click", (e) => openReport({ lat: e.latlng.lat, lon: e.latlng.lng }, load));
@@ -81,8 +116,8 @@ function openReport(loc, onSent) {
   const chips = h("div", { class: "opts compact" }, REPORT_TYPES.map((r) => h("button", {
     class: "opt", "data-id": r.id,
     onclick: () => { type = r.id; chips.querySelectorAll(".opt").forEach((b) => b.classList.toggle("on", b.dataset.id === type)); },
-  }, h("span", { class: "opt-icon" }, r.icon), h("span", {}, t(`rt_${r.id}`)))));
-  const note = h("textarea", { rows: 2, placeholder: t("r_note"), maxlength: 300 });
+  }, h("span", { class: "chip-ic" }, icon(r.icon)), h("span", {}, t(`rt_${r.id}`)))));
+  const note = h("textarea", { rows: 2, placeholder: t("r_note"), "aria-label": t("r_note"), maxlength: 300, style: { marginTop: "16px" } });
   const preview = h("img", { class: "photo-preview", alt: "" });
   const file = h("input", { type: "file", accept: "image/*", capture: "environment", onchange: async () => {
     if (!file.files[0]) return;
@@ -91,11 +126,12 @@ function openReport(loc, onSent) {
   } });
   const close = overlay(h("div", { class: "card" },
     h("h2", {}, t("report")),
-    h("p", { class: "muted small" }, `📍 ${loc.lat.toFixed(4)}, ${loc.lon.toFixed(4)}`),
-    h("h3", {}, t("r_type")), chips,
+    h("p", { class: "muted small" }, icon("location_on"), ` ${loc.lat.toFixed(4)}, ${loc.lon.toFixed(4)}`),
+    h("h3", { style: { marginTop: "20px" } }, t("r_type")), chips,
     note,
-    h("label", { class: "file-label" }, `📷 ${t("r_photo")}`, file), preview,
+    h("label", { class: "file-label" }, icon("photo_camera"), t("r_photo"), file), preview,
     h("div", { class: "row" },
+      h("button", { class: "btn", onclick: () => close() }, t("cancel")),
       h("button", { class: "btn primary", onclick: async () => {
         if (!type) return toast(t("r_type"));
         const id = uid();
@@ -103,6 +139,5 @@ function openReport(loc, onSent) {
         toast(isOnline() ? t("r_sent") : t("r_queued"));
         close();
         setTimeout(() => onSent?.(), 1500);
-      } }, t("r_send")),
-      h("button", { class: "btn", onclick: () => close() }, t("cancel")))), { className: "sheet" });
+      } }, t("r_send")))), { className: "sheet" });
 }

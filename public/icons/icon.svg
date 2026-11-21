@@ -1,6 +1,14 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="112" fill="#c81e1e"/>
-  <path d="M256 92 L436 402 H76 Z" fill="none" stroke="#fff" stroke-width="34" stroke-linejoin="round"/>
-  <rect x="238" y="200" width="36" height="110" rx="18" fill="#fff"/>
-  <circle cx="256" cy="348" r="22" fill="#fff"/>
+  <!-- apadaAlert mark: a location pin sending out a signal. "Your location reaches rescuers." -->
+  <rect width="512" height="512" rx="112" fill="#e0281e"/>
+  <g fill="none" stroke="#fff" stroke-width="26" stroke-linecap="round">
+    <path d="M362.5 157.4A130 130 0 0 1 362.5 306.6"/>
+    <path d="M149.5 157.4A130 130 0 0 0 149.5 306.6"/>
+    <g opacity=".55">
+      <path d="M407.5 125.9A185 185 0 0 1 407.5 338.1"/>
+      <path d="M104.5 125.9A185 185 0 0 0 104.5 338.1"/>
+    </g>
+  </g>
+  <path d="M256 400L186.9 268.2A78 78 0 1 1 325.1 268.2Z" fill="#fff"/>
+  <circle cx="256" cy="232" r="30" fill="#e0281e"/>
 </svg>

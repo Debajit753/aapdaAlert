@@ -1,8 +1,9 @@
 // Danger mode: one tap-only question at a time (PRD F6).
-import { QUESTIONS, MAX_TAP_QUESTIONS } from "../data/questions.js";
+import { QUESTIONS, MAX_TAP_QUESTIONS, spokenQuestion, FIXED_VOICE_QUESTIONS } from "../data/questions.js";
 import { GUIDES, EXTRA_STEPS } from "../data/guides.js";
 import { t, pick, getLang } from "./i18n.js";
 import { h, overlay, toast, fill } from "./ui.js";
+import { icon, label } from "./icons.js";
 import { api, queue, isOnline } from "./net.js";
 import { deviceId, hasProfile, getProfile, profileCounts, addChat, getChat, uid } from "./state.js";
 import { startSos, updateSos, activeSos, isActive, smsLink } from "./sos.js";
@@ -16,6 +17,15 @@ export const questionById = (id) => questions.find((q) => q.id === id);
 
 function questionText(q) {
   return pick(q.text).replace("{n}", getProfile().people || "");
+}
+
+/** What is read aloud for a question: the question, then its answers. */
+const spoken = (q, text = questionText(q)) => spokenQuestion(q, getLang(), text);
+
+/** The danger questions whose AI voice can be saved in advance, in the current language. */
+export function dangerPhrases() {
+  const fixed = new Set(FIXED_VOICE_QUESTIONS.map((q) => q.id));
+  return questions.filter((q) => fixed.has(q.id)).map((q) => spoken(q));
 }
 
 /** Saves a message on the phone and sends it to the server when possible. */
@@ -40,6 +50,7 @@ export async function startDanger({ trigger = "button", hazardHint = null, onLef
   if (hazardHint && ["flood", "landslide", "earthquake"].includes(hazardHint)) answers.hazard = hazardHint;
   let sosStarted = false;
   let taps = 0;
+  const order = []; // question ids in the order they were answered
 
   if (trigger === "sos" || isActive()) {
     answers.inDanger = "now";
@@ -61,8 +72,10 @@ export async function startDanger({ trigger = "button", hazardHint = null, onLef
   const remaining = () => questions.filter(eligible).map((q) => q.id);
 
   async function chooseNext(rem) {
-    // Gemini picks the next question, skipping anything already known. 4-second limit, then the fixed order.
-    if (!isOnline() || rem.length <= 1) return { id: rem[0] };
+    // Gemini picks the next question, skipping anything the person already said in chat.
+    // If they haven't typed or spoken anything, there is nothing to skip, so the saved order is used at once.
+    const saidSomething = getChat().slice(-8).some((m) => m.role === "user" && m.mode === "chat");
+    if (!isOnline() || rem.length <= 1 || !saidSomething) return { id: rem[0] };
     try {
       const r = await api("companion", {
         method: "POST", timeout: 4000,
@@ -84,9 +97,20 @@ export async function startDanger({ trigger = "button", hazardHint = null, onLef
     show(questionById(pickNext.id), pickNext.text, Math.min(MAX_TAP_QUESTIONS, taps + rem.length));
   }
 
-  function show(q, customText, total) {
+  /** Back: return to the previous question so the answer can be changed, or leave on the first one. */
+  function back() {
+    const last = order[order.length - 1];
+    if (!last || last === "inDanger") return close();
+    order.pop();
+    delete answers[last];
+    taps = Math.max(0, taps - 1);
+    show(questionById(last), null, Math.min(MAX_TAP_QUESTIONS, taps + remaining().length), true);
+  }
+
+  function show(q, customText, total, again = false) {
     const text = customText || questionText(q);
-    logChat({ role: "companion", text, mode: "danger", questionId: q.id, sosId: activeSos()?.id || null });
+    // A question shown again after Back is already in the chat log
+    if (!again) logChat({ role: "companion", text, mode: "danger", questionId: q.id, sosId: activeSos()?.id || null });
     const chosen = new Set();
     const optionBtn = (o) => h("button", {
       class: "opt", "data-id": o.id,
@@ -97,22 +121,26 @@ export async function startDanger({ trigger = "button", hazardHint = null, onLef
           body.querySelectorAll(".opt").forEach((b) => b.classList.toggle("on", chosen.has(b.dataset.id)));
         } else answer(q, o.id);
       },
-    }, h("span", { class: "opt-icon" }, o.icon), h("span", {}, pick(o.label)));
+    }, h("span", { class: "chip-ic" }, icon(o.icon)), h("span", {}, pick(o.label)));
 
     fill(body,
       h("div", { class: "danger-top" },
-        h("div", { class: "dots" }, Array.from({ length: total }, (_, i) => h("span", { class: i < taps ? "dot done" : i === taps ? "dot now" : "dot" }))),
-        h("p", { class: "danger-hint" }, sosStarted ? `✅ ${t("danger_hint")}` : t("danger_hint_pre"))),
+        h("div", { class: "danger-bar" },
+          h("button", { class: "back", "aria-label": t("back"), onclick: back }, icon("arrow_back")),
+          h("div", { class: "progress" }, Array.from({ length: total }, (_, i) => h("span", { class: i < taps ? "done" : i === taps ? "now" : "" })))),
+        sosStarted ? h("p", { class: "danger-hint sent" }, icon("check_circle"), t("danger_hint")) : h("p", { class: "danger-hint" }, t("danger_hint_pre"))),
       h("h2", { class: "danger-q" }, text),
       q.multi ? h("p", { class: "muted" }, t("tap_all_done")) : null,
       h("div", { class: "opts" }, q.options.map(optionBtn)),
       q.multi ? h("button", { class: "btn primary wide", onclick: () => chosen.size && answer(q, [...chosen]) }, t("done")) : null,
-      canListen() ? h("button", { class: "btn ghost wide", onclick: () => speakAnswer(q) }, `🎤 ${t("speak_instead")}`) : null,
-      h("div", { class: "danger-actions" },
-        h("a", { class: "btn call", href: "tel:112" }, `📞 ${t("call112")}`),
-        !sosStarted ? h("button", { class: "btn sos-small", onclick: async () => { answers.inDanger = "now"; await startSos({ answers: { ...answers }, hazard: answers.hazard }); sosStarted = true; toast(t("sos_sent_now")); next(); } }, `🆘 ${t("send_sos_now")}`) : null),
+      h("div", { class: "danger-foot" },
+        canListen() ? h("button", { class: "btn ghost", onclick: () => speakAnswer(q) }, label("mic", t("speak_instead"))) : null,
+        h("div", { class: "danger-actions" },
+        h("a", { class: "btn call", href: "tel:112" }, label("call", t("call112"))),
+        !sosStarted ? h("button", { class: "btn primary", onclick: async () => { answers.inDanger = "now"; await startSos({ answers: { ...answers }, hazard: answers.hazard }); sosStarted = true; toast(t("sos_sent_now")); next(); } }, label("siren", t("send_sos_now"))) : null)),
     );
-    speak(`${text} ${q.options.map((o) => pick(o.label)).join(", ")}`);
+    // Saved questions play in the AI voice; reworded or changing ones use the phone's voice
+    speak(spoken(q, text), { waitMs: customText ? 0 : 2500 });
   }
 
   async function speakAnswer(q) {
@@ -127,6 +155,7 @@ export async function startDanger({ trigger = "button", hazardHint = null, onLef
 
   async function answer(q, value) {
     answers[q.id] = value;
+    order.push(q.id);
     taps++;
     const labels = (Array.isArray(value) ? value : [value]).map((v) => pick(q.options.find((o) => o.id === v)?.label));
     logChat({ role: "user", text: labels.join(", "), mode: "danger", questionId: q.id, answerIds: [].concat(value), sosId: activeSos()?.id || null });
@@ -177,7 +206,7 @@ function fallbackSms(answers) {
   return `SOS ${answers.hazard && answers.hazard !== "unknown" ? answers.hazard : ""} ${p.people ? p.people + " people" : ""} ${answers.injured === "bad" ? "injured" : ""} ${answers.canMove === "stuck" ? "stuck" : ""} ${loc}`.replace(/\s+/g, " ").trim().slice(0, 160);
 }
 
-export async function showSteps({ answers, worried }) {
+async function showSteps({ answers, worried }) {
   const box = h("div", { class: "card dothis" }, h("div", { class: "spinner" }));
   const close = overlay(box, { className: "sheet" });
   let steps = null, sms = null, fromAi = false;
@@ -188,19 +217,19 @@ export async function showSteps({ answers, worried }) {
     } catch { /* use saved steps */ }
   }
   if (!steps) { steps = fallbackSteps(answers); sms = fallbackSms(answers); }
-  const read = () => speak(`${t("dothis")}. ${steps.join(". ")}`);
+  const read = () => speak(`${t("dothis")}. ${steps.join(". ")}`); // phone voice: these words change every time
   fill(box,
-    h("h2", {}, `⚡ ${t("dothis")}`),
-    worried ? h("p", { class: "notice" }, t("worried_msg")) : null,
+    h("h2", {}, icon("bolt"), t("dothis")),
+    worried ? h("p", { class: "notice" }, icon("warning"), h("span", {}, t("worried_msg"))) : null,
     h("ol", { class: "steps" }, steps.map((s) => h("li", {}, s))),
-    h("p", { class: "muted small" }, fromAi ? t("steps_ai") : t("steps_saved")),
+    h("p", { class: "muted small", style: { marginTop: "8px" } }, fromAi ? t("steps_ai") : t("steps_saved")),
     h("div", { class: "grid2" },
-      h("a", { class: "btn call", href: "tel:112" }, `📞 ${t("call112")}`),
-      h("button", { class: "btn", onclick: read }, `🔊 ${t("read_aloud")}`),
-      h("button", { class: "btn", onclick: async () => { try { await navigator.clipboard.writeText(sms); toast(t("copied")); } catch { toast(sms, 8000); } } }, `✉️ ${t("copy_sms")}`),
-      h("button", { class: "btn", onclick: () => strobe(true) }, `🔦 ${t("strobe")}`),
-      isActive() ? h("a", { class: "btn", href: smsLink() }, `📨 ${t("sms_sos")}`) : null,
-      worried ? h("button", { class: "btn sos-small", onclick: async () => { close(); await startDanger({ trigger: "sos" }); } }, `🆘 ${t("send_sos_now")}`) : null),
+      h("a", { class: "btn call", href: "tel:112" }, label("call", t("call112"))),
+      h("button", { class: "btn", onclick: read }, label("volume_up", t("read_aloud"))),
+      h("button", { class: "btn", onclick: async () => { try { await navigator.clipboard.writeText(sms); toast(t("copied")); } catch { toast(sms, 8000); } } }, label("content_copy", t("copy_sms"))),
+      h("button", { class: "btn", onclick: () => strobe(true) }, label("flashlight_on", t("strobe"))),
+      isActive() ? h("a", { class: "btn span2", href: smsLink() }, label("sms", t("sms_sos"))) : null,
+      worried ? h("button", { class: "btn primary span2", onclick: async () => { close(); await startDanger({ trigger: "sos" }); } }, label("siren", t("send_sos_now"))) : null),
     h("button", { class: "btn ghost wide", onclick: () => close() }, t("close")),
   );
   read();

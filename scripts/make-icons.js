@@ -3,7 +3,7 @@ import fs from "node:fs";
 import zlib from "node:zlib";
 import path from "node:path";
 
-const RED = [200, 30, 30], WHITE = [255, 255, 255];
+const RED = [224, 40, 30], WHITE = [255, 255, 255], SOFT = [241, 158, 154]; // SOFT = white at 55% over red
 
 function crcTable() {
   const t = new Uint32Array(256);
@@ -25,23 +25,30 @@ const inRoundRect = (x, y, r, full) => {
   const cx = Math.min(Math.max(x, r), 512 - r), cy = Math.min(Math.max(y, r), 512 - r);
   return (x - cx) ** 2 + (y - cy) ** 2 <= r * r;
 };
-function distToSeg(px, py, ax, ay, bx, by) {
-  const dx = bx - ax, dy = by - ay;
-  const t = Math.max(0, Math.min(1, ((px - ax) * dx + (py - ay) * dy) / (dx * dx + dy * dy)));
-  return Math.hypot(px - (ax + t * dx), py - (ay + t * dy));
+// The mark: a location pin sending out a signal (same drawing as icon.svg).
+const C = { x: 256, y: 232 };
+function inTriangle(px, py, a, b, c) {
+  const d = (p, q, r) => (p[0] - r[0]) * (q[1] - r[1]) - (q[0] - r[0]) * (p[1] - r[1]);
+  const d1 = d([px, py], a, b), d2 = d([px, py], b, c), d3 = d([px, py], c, a);
+  return !((d1 < 0 || d2 < 0 || d3 < 0) && (d1 > 0 || d2 > 0 || d3 > 0));
 }
-function isWhite(x, y, inset) {
-  // Scale the drawing toward the centre for maskable icons
-  const s = inset ? 0.72 : 1;
+function onArc(X, Y, r) {
+  const dx = Math.abs(X - C.x), dy = Y - C.y;
+  const ang = (Math.atan2(dy, dx) * 180) / Math.PI;
+  if (Math.abs(ang) <= 35 && Math.abs(Math.hypot(dx, dy) - r) <= 13) return true;
+  const ex = r * Math.cos((35 * Math.PI) / 180), ey = r * Math.sin((35 * Math.PI) / 180); // round ends
+  return Math.hypot(dx - ex, Math.abs(dy) - ey) <= 13;
+}
+/** Returns the colour at a point of the 512 x 512 design, or null for the red background. */
+function markColour(x, y, inset) {
+  const s = inset ? 0.72 : 1; // maskable icons keep the mark inside the safe zone
   const X = 256 + (x - 256) / s, Y = 256 + (y - 256) / s;
-  const tri = [[256, 92], [436, 402], [76, 402]];
-  for (let i = 0; i < 3; i++) {
-    const [a, b] = [tri[i], tri[(i + 1) % 3]];
-    if (distToSeg(X, Y, a[0], a[1], b[0], b[1]) <= 17) return true;
-  }
-  if (distToSeg(X, Y, 256, 218, 256, 292) <= 18) return true; // exclamation bar
-  if (Math.hypot(X - 256, Y - 348) <= 22) return true;          // exclamation dot
-  return false;
+  const d = Math.hypot(X - C.x, Y - C.y);
+  if (d <= 30) return null; // hole in the pin
+  if (d <= 78 || inTriangle(X, Y, [186.9, 268.2], [325.1, 268.2], [256, 400])) return WHITE;
+  if (onArc(X, Y, 130)) return WHITE;
+  if (onArc(X, Y, 185)) return SOFT;
+  return null;
 }
 
 function draw(size, maskable) {
@@ -54,7 +61,7 @@ function draw(size, maskable) {
       for (let sy = 0; sy < SS; sy++) for (let sx = 0; sx < SS; sx++) {
         const x = ((px + (sx + 0.5) / SS) / size) * 512, y = ((py + (sy + 0.5) / SS) / size) * 512;
         if (!inRoundRect(x, y, 112, maskable)) continue;
-        const c = isWhite(x, y, maskable) ? WHITE : RED;
+        const c = markColour(x, y, maskable) || RED;
         r += c[0]; g += c[1]; b += c[2]; a += 255;
       }
       const n = SS * SS, o = py * (size * 4 + 1) + 1 + px * 4;

@@ -3,3 +3,7 @@ node_modules/
 .env.local
 data/dev-db.json
 .vercel
+
+# Firebase service account key files, if one is ever copied here
+*firebase-adminsdk*.json
+serviceAccount*.json

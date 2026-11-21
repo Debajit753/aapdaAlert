@@ -229,7 +229,7 @@ If no household details were saved in the intro, question 6 is replaced by two q
 
 **Rules:**
 - **At most 6 questions on the tap screen.** The SOS has already been sent, so anything left over is asked afterwards by the companion in chat.
-- **With Gemini:** Gemini picks the next question. It skips anything already known from the user's earlier messages or household details, and can reword a question to fit what the user already said.
+- **With Gemini:** Gemini picks the next question. It skips anything already known from the user's earlier messages or household details, and can reword a question to fit what the user already said. Gemini is only asked when the person has typed or spoken something in chat. After a plain SOS tap there is nothing to skip, so the saved order is used instantly.
 - **Without Gemini:** if Gemini doesn't reply within 4 seconds, or there's no network, the app uses the saved question list (see below). The questions never stop.
 - **Location and battery are never asked.** They come from GPS and the phone automatically.
 
@@ -328,7 +328,7 @@ Every reply is structured JSON, so the app can show buttons rather than just tex
 
 - Interface, intro, guides, companion chat, danger questions and alerts in **English, Hindi, Assamese and Bengali**.
 - **Voice input** through the browser's speech recognition (en-IN, hi-IN, bn-IN, as-IN).
-- **Read aloud** through speech synthesis, using the best available voice for each language.
+- **Read aloud:** the danger questions and the helicopter alert use a natural **Gemini AI voice** in the person's language (English, Hindi, Assamese, Bengali). Each phrase is made once, saved in Firestore and on the phone, so it plays instantly and offline. Changing text (safety steps, chat, guides) uses the phone's built-in voice, because the free AI voice allows about 20 new phrases a day. `scripts/prepare-voices.js` prepares all fixed phrases before the demo.
 - **Assamese voice is not guaranteed.** Chrome's support for Assamese speech and read-aloud varies by phone. If it isn't available, the app shows Assamese as text and offers voice in Bengali or Hindi. This must be tested on the demo phone before the demo.
 - Translations must be checked by a native speaker before the demo (see open questions).
 
@@ -369,6 +369,36 @@ Lets a stranded person know a rescue helicopter (or boat) is close, so they can 
 - **Crew side:** the crew page lists the nearest active SOS requests with distance, direction and urgency score. The crew sees where people are as they fly.
 - **Limits:** the app must be open on the stranded person's phone. The crew's phone needs a network to share its position. Browsers may block sound until the user has tapped the screen once; tapping SOS counts. Detecting helicopters by sound without any network is Phase 3.
 - **Acceptance:** Phone A has an active SOS. Phone B on the crew page comes within 3 km (or the operator moves the demo unit). Phone A shows the alert, vibrates and starts the strobe within 10 seconds.
+
+### F19. Official alerts, weather and people nearby
+
+**Official government alerts on Home**
+- The server reads **SACHET**, the National Disaster Management Authority's public alert feed (alerts from IMD, CWC and state disaster authorities), every 10 minutes.
+- It keeps alerts from the last 24 hours that mention North East India (states, districts, towns, rivers or the issuing office) and shows the newest 3, with "Show all".
+- Each alert shows who issued it (for example "Issued by IMD Shillong") and links to the official source. Shown in English, as issued.
+- Alerts created in the control room carry an "Issued by" label (NDRF, SDRF, ASDMA, District administration, IMD or Control room). In the demo this label is chosen by the operator; a real launch would verify the sender.
+
+**Weather where you are**
+- A card at the top of Home: temperature, conditions in the person's language, chance of rain in the next 6 hours, and wind.
+- A heavy-rain warning appears when heavy rain is falling or expected.
+- From Open-Meteo (free, no key), fetched by our server with the location rounded to about 1 km, kept for 10 minutes. The last reading still shows offline.
+- The AI companion also knows the weather and the official alerts, so it can answer "Will it rain here?"
+
+**People nearby (in Companion)**
+- A second tab in Companion: a simple chat with everyone within 30 km, similar in spirit to bitchat. No account needed; people appear as their first name and a short tag (for example "Ritu #ev01") with their distance.
+- One-tap messages: I'm safe, Need help, Water and food, Have a boat, Road flooded. "Need help" also opens the SOS questions, so a request to neighbours can become an SOS to rescuers.
+- Location is rounded to about 1 km before it is saved, so exact homes aren't revealed. Messages last 24 hours.
+- Anyone can report a message. It is hidden once 3 different people report it.
+- Messages wait in the outbox if the network drops and send themselves later.
+- The control room sees the chat in a **Chat** tab, to spot needs (water, boats, blocked roads) that never became an SOS.
+- Phase 3 adds the same chat over Bluetooth in the Android app, with no internet at all.
+
+### F18. Feature tour (for judges)
+
+- A screen (`/#tour`, also under More) with one card per feature and a button that demonstrates each one.
+- The first screen has a "Judge? Skip to the feature tour" link that fills in sample details.
+- Includes two simulations so everything can be shown from one phone: a switch that simulates a network drop, and a demo helicopter that flies to the person's SOS.
+- A "Reset the demo" button clears the phone's data and shows the intro again.
 
 ## 9. Future phases
 

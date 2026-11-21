@@ -2,12 +2,12 @@
 import { ls, uid, deviceId, getProfile } from "./state.js";
 import { queue, api, isOnline } from "./net.js";
 import { getPosition, lastLocation, batteryLevel } from "./location.js";
-import { t, getLang } from "./i18n.js";
+import { t, getLang, heliPhraseIn } from "./i18n.js";
 import { h, overlay, vibrate } from "./ui.js";
+import { icon, label } from "./icons.js";
 import { strobe, whistle } from "./tools.js";
 import { speak } from "./voice.js";
 
-const OPEN = ["received", "dispatched", "queued"];
 export const activeSos = () => ls.get("aa.sos", null);
 export const isActive = (s = activeSos()) => Boolean(s && s.status !== "rescued" && s.status !== "cancelled");
 
@@ -113,6 +113,8 @@ export function watch() {
   watchTimer = setTimeout(checkStatus, s.delivered ? delay : 5000);
 }
 function stopWatch() { clearTimeout(watchTimer); }
+/** Checks the SOS status and nearby rescue units right now. */
+export function checkNow() { clearTimeout(watchTimer); return checkStatus(); }
 
 async function checkStatus() {
   const s = activeSos();
@@ -132,6 +134,9 @@ async function checkStatus() {
   watch();
 }
 
+/** The helicopter alert read aloud in the current language (AI voice, saved in advance). */
+export const heliPhrase = () => heliPhraseIn(getLang());
+
 function heliAlert(n) {
   const shown = ls.get("aa.heliShown", []);
   const key = `${n.unitId}:${n.level}`;
@@ -143,21 +148,21 @@ function heliAlert(n) {
   if (n.level === "signal_now") {
     vibrate([600, 200, 600, 200, 600, 200, 1200]);
     document.querySelectorAll(".overlay.heli").forEach((o) => o.close?.());
-    strobe(true, { withWhistle: true, title: `🚁 ${t("heli_now_t")}`, lines: [t("heli_now_b", { km: n.distanceKm }), ...steps] });
+    strobe(true, { withWhistle: true, title: t("heli_now_t"), lines: [t("heli_now_b", { km: n.distanceKm }), ...steps] });
   } else {
     vibrate([400, 200, 400]);
     whistle(true); setTimeout(() => whistle(false), 2500);
     const close = overlay(
       h("div", { class: "card heli-card" },
-        h("div", { class: "heli-icon" }, n.type === "boat" ? "🚤" : n.type === "ground" ? "🚑" : "🚁"),
+        h("div", { class: "hero-ic blue" }, icon(n.type === "boat" ? "directions_boat" : n.type === "ground" ? "ambulance" : "helicopter")),
         h("h2", {}, n.type === "boat" ? t("boat") : n.type === "ground" ? t("ground") : t("heli_approach_t")),
         h("p", { class: "big" }, t("heli_approach_b", { km: n.distanceKm })),
         h("ol", { class: "steps" }, steps.map((x) => h("li", {}, x))),
         h("div", { class: "row" },
-          h("button", { class: "btn primary", onclick: () => { close(); strobe(true, { withWhistle: true, title: t("heli_now_t"), lines: steps }); } }, `🔦 ${t("strobe_start")}`),
+          h("button", { class: "btn primary", onclick: () => { close(); strobe(true, { withWhistle: true, title: t("heli_now_t"), lines: steps }); } }, label("flashlight_on", t("strobe_start"))),
           h("button", { class: "btn", onclick: () => close() }, t("close")))),
       { className: "heli" },
     );
-    speak(`${t("heli_approach_t")}. ${t("heli_approach_b", { km: n.distanceKm })}`);
+    speak(heliPhrase(), { waitMs: 2500 });
   }
 }

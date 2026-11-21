@@ -1,5 +1,6 @@
 // Crew page (PRD F17): shares the rescue unit's GPS and lists the nearest SOS requests.
 import { h, fill } from "./ui.js";
+import { icon, label } from "./icons.js";
 
 const root = document.querySelector("#crew");
 const store = {
@@ -72,11 +73,11 @@ function draw() {
     h("section", { class: "ccard" },
       h("label", {}, "Call sign", h("input", { value: cfg.callSign, disabled: sharing, oninput: (e) => { cfg.callSign = e.target.value.slice(0, 30); store.set("crew.cfg", cfg); } })),
       h("label", {}, "Unit type", h("select", { disabled: sharing, onchange: (e) => { cfg.type = e.target.value; store.set("crew.cfg", cfg); } },
-        [["helicopter", "🚁 Helicopter"], ["boat", "🚤 Boat"], ["ground", "🚑 Ground team"]].map(([v, t]) => h("option", { value: v, selected: cfg.type === v }, t)))),
+        [["helicopter", "Helicopter"], ["boat", "Boat"], ["ground", "Ground team"]].map(([v, t]) => h("option", { value: v, selected: cfg.type === v }, t)))),
       sharing
-        ? h("button", { class: "btn stop", onclick: stop }, "⏹ Stop sharing")
-        : h("button", { class: "btn go", onclick: start }, "▶ Start sharing my position"),
-      !sharing ? h("button", { class: "btn", onclick: simulate }, "🎬 Demo: simulate a flight to the nearest SOS") : null,
+        ? h("button", { class: "btn stop", onclick: stop }, label("stop_circle", "Stop sharing"))
+        : h("button", { class: "btn go", onclick: start }, label("share_location", "Start sharing my position")),
+      !sharing ? h("button", { class: "btn", onclick: simulate }, label("movie", "Demo: simulate a flight to the nearest SOS")) : null,
       h("p", { class: "muted" }, sharing ? `Sharing${sim ? " (simulated flight)" : ""}. ${last ? `${last.lat.toFixed(4)}, ${last.lon.toFixed(4)}` : "Waiting for GPS…"}` : "Not sharing."),
       error ? h("p", { class: "err" }, error) : null),
     h("h2", {}, "Nearest SOS"),
@@ -84,8 +85,8 @@ function draw() {
       ? h("div", { class: "cards" }, nearby.map((s) => h("div", { class: `rcard ${s.level || ""}` },
         h("b", {}, `${s.distanceKm} km · ${dir(s.bearing)} · score ${s.score}`),
         h("small", {}, `${s.hazard}${s.people ? ` · ${s.people} people` : ""} · ${s.status}`),
-        s.level ? h("small", { class: "lvl" }, s.level === "signal_now" ? "📣 They were told: signal now" : "📣 They were told: get ready") : null,
-        h("a", { class: "link", href: `https://maps.google.com/?q=${s.lat},${s.lon}`, target: "_blank", rel: "noopener" }, "Open in maps ↗"))))
+        s.level ? h("small", { class: "lvl" }, icon("campaign"), s.level === "signal_now" ? " They were told: signal now" : " They were told: get ready") : null,
+        h("a", { class: "link", href: `https://maps.google.com/?q=${s.lat},${s.lon}`, target: "_blank", rel: "noopener" }, label("open_in_new", "Open in maps")))))
       : h("p", { class: "muted" }, sharing ? "No active SOS nearby." : "Start sharing to see SOS requests."));
 }
 const dir = (deg) => ["N", "NE", "E", "SE", "S", "SW", "W", "NW"][Math.round(deg / 45) % 8];

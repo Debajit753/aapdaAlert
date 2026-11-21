@@ -4,18 +4,20 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>apadaAlert Control Room</title>
-  <meta name="theme-color" content="#c81e1e">
+  <meta name="theme-color" content="#ffffff">
   <link rel="icon" href="/icons/icon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
   <link rel="stylesheet" href="/console.css">
 </head>
 <body>
   <header class="dh">
-    <div class="dh-brand"><span class="logo">⚠</span> apada<b>Alert</b> <span class="dh-title">Control room</span></div>
+    <div class="dh-brand"><img class="logo" src="/icons/icon.svg" alt=""> <span>apadaAlert</span> <span class="dh-title">Control room</span></div>
     <div class="dh-meta">
       <span id="ai-status" class="tag">AI …</span>
       <span class="tag warn" title="This is a hackathon demo: anyone with the link can open this page">Demo: no login</span>
-      <a class="tag link" href="/crew" target="_blank" rel="noopener">Crew page ↗</a>
+      <a class="tag link" href="/crew" target="_blank" rel="noopener">Crew page</a>
     </div>
   </header>
   <div class="dwrap">
@@ -26,6 +28,7 @@
         <button data-tab="reports">Reports</button>
         <button data-tab="alerts">Alerts</button>
         <button data-tab="units">Units <span id="count-units" class="count">0</span></button>
+        <button data-tab="people">Chat</button>
       </nav>
       <div id="panel" class="dbody"></div>
     </aside>

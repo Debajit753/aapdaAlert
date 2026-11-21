@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  Live demo: <a href="https://apada-alert.vercel.app">apada-alert.vercel.app</a> · Control room: <a href="https://apada-alert.vercel.app/dashboard">/dashboard</a> · Crew: <a href="https://apada-alert.vercel.app/crew">/crew</a>
+  Live demo: <a href="https://aapda-alert.vercel.app">aapda-alert.vercel.app</a> · Control room: <a href="https://aapda-alert.vercel.app/dashboard">/dashboard</a> · Crew: <a href="https://aapda-alert.vercel.app/crew">/crew</a>
   <br>
   Built for <b>PromptWars x Code1 Innovators</b> (Hack2skill), problem statement <b>PS05: Northeast Connect, Community Emergency Assistant</b>
 </p>

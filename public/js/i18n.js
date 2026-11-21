@@ -296,7 +296,7 @@ export function speechLang(l = current) { return LANGS.find((x) => x.id === l)?.
 
 /** Text for a key in the current language, with {placeholders} filled in. */
 /** Text for a key in a given language, without changing the app's language. */
-function textIn(lang, key) { return S[lang]?.[key] ?? S.en[key] ?? key; }
+export function textIn(lang, key) { return S[lang]?.[key] ?? S.en[key] ?? key; }
 
 /** The helicopter alert read aloud. Fixed words (no distance in them), so its AI voice can be saved in advance. */
 export function heliPhraseIn(lang) {
